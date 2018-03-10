@@ -1,0 +1,90 @@
+tempo entre os pacotes sync26    = 02:38 (568)
+tempo entre os pacotes keepalive = 04:00 (1024)
+
+
+echo study locally
+
+hello sync
+session sync26
+session sync22
+keepAlive sync18
+
+playerType2A	count 0xff identification
+playerType2B	identification
+playerType10	??
+playerType11	??
+playerType12A	count 0xff sync + vector (pos/dir/speed)
+playerType12B	sync + vector (pos/dir/speed)
+
+
+client howto:
+
+cli->srv hello (~5000ms between)
+cli->srv hello
+cli->srv hello
+cli->srv hello
+* NETERROR_CONNECT_PEER_TIMEOUT (~60000ms)
+
+TalkStatusType.WAITING_HELLO
+1- srv->cli hello
+
+TalkStatusType.WAITING_HELLO_SYNC
+cli->srv session sync26 (~580ms between)
+cli->srv session sync26
+cli->srv session sync26
+cli->srv session sync26
+cli->srv session sync26
+cli->srv session sync26
+* NETERROR_CONNECT_PEER_TIMEOUT (~60000ms), stop trying in (~15000ms)
+
+2- srv->cli session sync26 (pure echo, byte[19] == 0x03)
+
+TalkStatusType.WAITING_ID_BEFORE_SYNC
+cli->srv playerType12A
+cli->srv playerType2
+cli->srv playerType12A
+cli->srv playerType12A
+cli->srv playerType12A
+cli->srv playerType12A... (12~16x)
+cli->srv playerType2
+cli->srv playerType12A... (12~16x)
+cli->srv keepAlive sync
+cli->srv playerType2
+cli->srv playerType12A... (12~16x)
+* NETERROR_HANDSHAKE_TIMEOUT
+
+3- srv->cli playerType2
+
+TalkStatusType.WAITING_SYNC_START
+cli->srv session sync22
+cli->srv session sync22
+cli->srv session sync22
+cli->srv session sync22
+cli->srv session sync22
+cli->srv session sync22
+cli->srv session sync22
+cli->srv session sync22
+cli->srv session sync22
+* load screen ~60sec
+* enter race halted on ready, 
+* lost connections to all opponents, 
+* countdoun and quit.
+
+4-> srv->cli session sync22 (while true, or send in the right time)
+
+TalkStatusType.WAITING_ID_AFTER_SYNC
+
+cli->srv playerType12B
+cli->srv playerType2B
+cli->srv playerType12B
+cli->srv playerType12B
+cli->srv playerType12B
+cli->srv playerType12B... (12~16x)
+cli->srv playerType2B
+cli->srv playerType12B... (12~16x)
+cli->srv keepAlive sync
+cli->srv playerType2B
+cli->srv playerType12B... (12~16x)
+
+* race start
+* if don't send keepalive connection lost ~15sec
