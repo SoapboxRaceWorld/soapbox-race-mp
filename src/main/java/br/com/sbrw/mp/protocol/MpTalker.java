@@ -81,7 +81,6 @@ public class MpTalker {
 		long now = new Date().getTime();
 		MpSession mpSession = MpSessions.get(this);
 		return mpSession.getCliTimeStart() + (now - startedTime);
-		// return getCliHelloTime() + (now - startedTime) +500L;
 	}
 
 	public byte[] getSequenceA() {

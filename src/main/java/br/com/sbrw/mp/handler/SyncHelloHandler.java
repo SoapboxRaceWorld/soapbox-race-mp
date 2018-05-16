@@ -77,9 +77,10 @@ public class SyncHelloHandler extends ChannelInboundHandlerAdapter {
 		clone = transformByteTypeA(mpTalker, clone);
 		clone[(clone.length - 11)] = 0;
 		clone[(clone.length - 6)] = UdpUtil.generateSlotsBits(mpTalker.getTotalPlayers());
-		clone[8] = 0x00;
-		clone[9] = 0x01;
-		clone[10] = 0x7f;
+		clone[8] = packet[9];
+		clone[9] = packet[10];
+		clone[10] = packet[11];
+		clone[11] = packet[12];
 		return clone;
 	}
 
