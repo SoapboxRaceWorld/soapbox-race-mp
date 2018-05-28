@@ -31,9 +31,9 @@ public class SyncKeepAlive extends ChannelInboundHandlerAdapter
             if (mpTalker != null)
             {
                 MpSession mpSession = MpSessions.get(mpTalker);
-                mpTalker.setSyncOk(true);
-                mpSession.setKeepAlivePacket(packet);
-                syncOk(mpSession);
+//                mpTalker.setSyncOk(true);
+//                mpSession.setKeepAlivePacket(packet);
+//                syncOk(mpSession);
                 syncOk(mpTalker, packet);
             }
         }
