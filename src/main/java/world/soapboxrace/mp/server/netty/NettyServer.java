@@ -1,6 +1,4 @@
-package br.com.sbrw.mp.srv;
-
-import java.net.InetSocketAddress;
+package world.soapboxrace.mp.server.netty;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -9,17 +7,21 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 
-public class NettyUdpServer {
+import java.net.InetSocketAddress;
 
+public class NettyServer
+{
     private int port;
     private Channel channel;
     private EventLoopGroup workerGroup;
 
-    public NettyUdpServer(int port) {
+    public NettyServer(int port)
+    {
         this.port = port;
     }
 
-    public ChannelFuture start() throws InterruptedException {
+    public ChannelFuture start() throws InterruptedException
+    {
         workerGroup = new NioEventLoopGroup();
 
         Bootstrap bootstrap = new Bootstrap();
@@ -33,8 +35,10 @@ public class NettyUdpServer {
         return channelFuture;
     }
 
-    public void stop() {
-        if (channel != null) {
+    public void stop()
+    {
+        if (channel != null)
+        {
             channel.close();
         }
         workerGroup.shutdownGracefully();

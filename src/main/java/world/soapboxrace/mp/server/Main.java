@@ -1,22 +1,24 @@
-package br.com.sbrw.mp.srv;
+package world.soapboxrace.mp.server;
 
 import io.netty.channel.ChannelFuture;
+import org.slf4j.LoggerFactory;
+import world.soapboxrace.mp.server.netty.NettyServer;
 
+/**
+ * The entry point.
+ */
 public class Main
 {
     public static void main(String[] args)
     {
-        int port = 9998;
-        if (args.length == 1)
-        {
-            port = Integer.parseInt(args[0]);
-        }
-        NettyUdpServer server;
+        NettyServer server;
 
         try
         {
-            server = new NettyUdpServer(port);
+            server = new NettyServer(9998);
             ChannelFuture future = server.start();
+
+            LoggerFactory.getLogger("Race").info("Started UDP server!");
 
             // Wait until the connection is closed.
             future.channel().closeFuture().sync();
