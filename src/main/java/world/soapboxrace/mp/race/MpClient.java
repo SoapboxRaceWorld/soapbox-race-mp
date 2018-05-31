@@ -3,6 +3,8 @@ package world.soapboxrace.mp.race;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
+import world.soapboxrace.mp.server.IParser;
+import world.soapboxrace.mp.server.SbrwParser;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
@@ -14,6 +16,9 @@ public class MpClient
 
     // The first packet from the client
     private DatagramPacket datagramPacket;
+
+    // The packet parser
+    private IParser parser;
 
     private byte[] cliTime;
     private byte[] syncHello;
@@ -52,6 +57,7 @@ public class MpClient
         this.cliTime = cliTime;
         this.clientId = clientId;
         this.totalPlayers = totalPlayers;
+        this.parser = new SbrwParser();
     }
 
     public int getSessionId()
@@ -164,5 +170,16 @@ public class MpClient
     public void setSyncHello(byte[] syncHello)
     {
         this.syncHello = syncHello;
+    }
+
+    public void parsePacket(byte[] packet)
+    {
+        this.parser.parse(packet);
+        preInfoOk = this.parser.isOk();
+    }
+
+    public byte[] getPlayerPacket()
+    {
+        return parser.getPlayerPacket(getTimeDiff());
     }
 }
