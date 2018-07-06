@@ -76,11 +76,11 @@ public class SyncHelloHandler extends BaseHandler
         buffer.put(helloTimeBytes);
 
         // unknown counter
-        buffer.put(packet[9]);
-        buffer.put(packet[10]);
+        buffer.put((byte) 0xFF);
+        buffer.put((byte) 0xFF);
         // handshake sync
-        buffer.put(packet[11]);
-        buffer.put(packet[12]);
+        buffer.put((byte) 0xFF);
+        buffer.put((byte) 0xFF);
 
         // write subpacket
         buffer.put((byte) 0x00); // pkt type

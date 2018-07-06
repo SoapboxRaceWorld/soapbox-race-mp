@@ -68,7 +68,6 @@ public class SyncHandler extends BaseHandler
 
     private ByteBuffer transformByteTypeASync22(MpClient mpClient, byte[] packet)
     {
-        byte[] seqArray = mpClient.getSequenceA();
         byte[] timeArray = ByteBuffer.allocate(2).putShort((short) mpClient.getTimeDiff()).array();
         byte[] helloTimeBytes = ByteBuffer.allocate(2)
                 .putShort((short) mpClient.getHelloTime())
@@ -76,7 +75,8 @@ public class SyncHandler extends BaseHandler
         
         ByteBuffer buffer = ByteBuffer.allocate(packet.length);
         buffer.put((byte) 0x00); // MP type
-        buffer.put(seqArray);
+        buffer.put(packet[1]);
+        buffer.put(packet[2]);
         buffer.put((byte) 0x02); // SRV type
         buffer.put(timeArray);
         buffer.put(helloTimeBytes);
