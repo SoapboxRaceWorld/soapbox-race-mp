@@ -149,7 +149,7 @@ public class MpClient
 
     public byte[] getSequenceB()
     {
-        return ByteBuffer.allocate(2).putShort((short) sequenceA++).array();
+        return ByteBuffer.allocate(2).putShort((short) sequenceB++).array();
     }
 
     public long getHelloTime()
