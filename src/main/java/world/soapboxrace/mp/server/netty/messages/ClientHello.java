@@ -35,6 +35,8 @@ public class ClientHello implements UdpMessage
         buf.skipBytes(1);
         
         cliHelloTime = (short) buf.getUnsignedShort(69);
+        cliHelloTime &= 0xFFFF;
+        
         playerIndex = cryptoTicket[0];
         numPlayers = cryptoTicket[9];
         sessionID = buf.getInt(9);

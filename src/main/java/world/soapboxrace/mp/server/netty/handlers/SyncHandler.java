@@ -30,8 +30,6 @@ public class SyncHandler extends BaseHandler
             return;
         }
 
-        
-
         if (isSync(data))
         {
             logger.debug("Got sync packet");

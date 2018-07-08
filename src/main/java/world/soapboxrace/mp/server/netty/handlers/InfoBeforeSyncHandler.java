@@ -35,12 +35,19 @@ public class InfoBeforeSyncHandler extends BaseHandler
             logger.debug("Got info before sync");
             racer.parsePacket(data);
 
-            if (session.allPlayersOK())
+            for (Racer sessionRacer : session.getRacers())
             {
-                logger.debug("All players marked as OK");
-
-                session.getRacers().forEach(this::broadcastInfoFrom);
+                if (sessionRacer.isSyncStartReady())
+                {
+                    racer.send(transformPacket(sessionRacer.getPlayerPacket(), sessionRacer));
+                }
             }
+//            if (session.allPlayersOK())
+//            {
+//                logger.debug("All players marked as OK");
+//
+//                session.getRacers().forEach(this::broadcastInfoFrom);
+//            }
         }
 
         super.channelRead(ctx, msg);
@@ -55,7 +62,7 @@ public class InfoBeforeSyncHandler extends BaseHandler
             for (Racer sessionRacer : session.getRacers())
             {
                 if (sessionRacer.getClientIndex() == racer.getClientIndex()) continue;
-                
+
                 sessionRacer.send(transformPacket(racer.getPlayerPacket(), racer));
                 logger.debug("{} -> {}", racer.getClientIndex(), sessionRacer.getClientIndex());
             }
@@ -80,7 +87,7 @@ public class InfoBeforeSyncHandler extends BaseHandler
         buffer.put((byte) 0x01);
         buffer.put(racer.getClientIndex());
 
-        buffer.put(new byte[]{0x00, 0x00});
+        buffer.put(ByteBuffer.allocate(2).putShort(racer.getSequenceA()).array());
 
         for (int i = 6; i < data.length - 1; i++)
         {
