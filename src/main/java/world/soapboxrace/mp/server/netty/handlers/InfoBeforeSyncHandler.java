@@ -35,19 +35,12 @@ public class InfoBeforeSyncHandler extends BaseHandler
             logger.debug("Got info before sync");
             racer.parsePacket(data);
 
-            for (Racer sessionRacer : session.getRacers())
+            if (session.allPlayersOK())
             {
-                if (sessionRacer.isSyncStartReady())
-                {
-                    racer.send(transformPacket(sessionRacer.getPlayerPacket(), sessionRacer));
-                }
+                logger.debug("All players marked as OK");
+
+                session.getRacers().forEach(this::broadcastInfoFrom);
             }
-//            if (session.allPlayersOK())
-//            {
-//                logger.debug("All players marked as OK");
-//
-//                session.getRacers().forEach(this::broadcastInfoFrom);
-//            }
         }
 
         super.channelRead(ctx, msg);
