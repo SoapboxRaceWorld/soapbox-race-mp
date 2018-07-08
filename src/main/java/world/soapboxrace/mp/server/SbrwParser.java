@@ -1,13 +1,15 @@
 package world.soapboxrace.mp.server;
 
 import world.soapboxrace.mp.util.ArrayReader;
+import world.soapboxrace.mp.util.ServerLog;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 public class SbrwParser implements IParser
 {
-    private final byte ID_PLAYER_INFO = 0x02;
-    private final byte ID_CAR_STATE = 0x12;
+    private static final byte ID_PLAYER_INFO = 0x02;
+    private static final byte ID_CAR_STATE = 0x12;
 
     // full packet
     // 01:00:00:73:00:01:ff:ff:ff:ff:02:4a:00:50:4c:41:59:45:52:31:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:64:00:00:00:00:00:00:00:72:67:90:a3:e2:ba:08:00:21:00:00:00:fa:91:32:00:c0:2f:92:22:50:03:00:00:00:b0:79:e6:cf:ee:1e:9c:fb:12:1a:ba:ef:98:08:73:de:d1:a5:97:49:c4:25:89:c4:1f:1e:fb:f1:d3:96:96:96:9a:fc:00:1f:ff:b0:8d:c3:30:ff:
@@ -21,14 +23,18 @@ public class SbrwParser implements IParser
     // 12:1a:ba:ef:98:08:73:de:d1:a5:97:49:c4:25:89:c4:1f:1e:fb:f1:d3:96:96:96:9a:fc:00:1f:
     private byte[] carState;
 
-    // b0:8d:c3:30:
-    private byte[] crc;
-
     private static final byte[] CRC_BYTES = {0x01, 0x02, 0x03, 0x04};
 
     @Override
     public void parse(byte[] packet)
     {
+        // should always be false unless the client sends a corrupted packet
+        if (packet.length < 16)
+        {
+            ServerLog.SERVER_LOGGER.error("Packet is too small ({} bytes, required at least 16)", packet.length);
+            return;
+        }
+
         ArrayReader arrayReader = new ArrayReader(packet);
 
         this.header = arrayReader.readBytes(10);
@@ -53,7 +59,8 @@ public class SbrwParser implements IParser
                         arrayReader.getLength()));
             }
 
-            System.out.println(String.format("packet 0x%02x (0x%02x)", packetId, packetLength));
+            ServerLog.SERVER_LOGGER.debug("Packet - ID: {} | size: {}", String.format("0x%02x", packetId), String.format("0x%02x", packetLength));
+//            System.out.println(String.format("packet 0x%02x (0x%02x)", packetId, packetLength));
 
             switch (packetId)
             {
@@ -77,14 +84,13 @@ public class SbrwParser implements IParser
                     break;
                 }
                 default:
+                    ServerLog.SERVER_LOGGER.debug("Skipping packet");
                     arrayReader.seek(packetLength, true);
                     break;
             }
         }
 
         arrayReader.seek(arrayReader.getLength() - 4);
-
-        crc = arrayReader.readBytes(4);
     }
 
     @Override
@@ -99,12 +105,35 @@ public class SbrwParser implements IParser
         if (isOk())
         {
             byte[] statePosPacket = getStatePosPacket(timeDiff);
-            int bufferSize = header.length + playerInfo.length + statePosPacket.length + CRC_BYTES.length;
+            int bufferSize = header.length + CRC_BYTES.length;
+            
+            if (playerInfo != null) {
+                bufferSize += playerInfo.length;
+            }
+            
+            if (statePosPacket != null) {
+                bufferSize += statePosPacket.length;
+            }
+            
+//            int bufferSize = header.length + playerInfo.length + Objects.requireNonNull(statePosPacket).length + CRC_BYTES.length;
             ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
+            
             byteBuffer.put(header);
-            byteBuffer.put(playerInfo);
-            byteBuffer.put(statePosPacket);
+
+            if (playerInfo != null) {
+                byteBuffer.put(playerInfo);
+            }
+
+            if (statePosPacket != null) {
+                byteBuffer.put(statePosPacket);
+            }
+            
             byteBuffer.put(CRC_BYTES);
+            
+//            byteBuffer.put(header);
+//            byteBuffer.put(playerInfo);
+//            byteBuffer.put(statePosPacket);
+//            byteBuffer.put(CRC_BYTES);
             byte[] array = byteBuffer.array();
             statePosPacket = null;
             return array;
@@ -124,7 +153,7 @@ public class SbrwParser implements IParser
         if (isOk())
         {
             byte[] statePosPacket = getStatePosPacket(timeDiff);
-            int bufferSize = header.length + statePosPacket.length + CRC_BYTES.length;
+            int bufferSize = header.length + Objects.requireNonNull(statePosPacket).length + CRC_BYTES.length;
             ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
             byteBuffer.put(header);
             byteBuffer.put(carState);
