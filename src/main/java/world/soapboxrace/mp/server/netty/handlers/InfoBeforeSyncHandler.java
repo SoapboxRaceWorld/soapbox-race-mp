@@ -80,7 +80,7 @@ public class InfoBeforeSyncHandler extends BaseHandler
         buffer.put((byte) 0x01);
         buffer.put(racer.getClientIndex());
 
-        buffer.put(ByteBuffer.allocate(2).putShort(racer.getSequenceA()).array());
+        buffer.put(new byte[] { 0x00, 0x00 });
 
         for (int i = 6; i < data.length - 1; i++)
         {
