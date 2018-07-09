@@ -69,7 +69,7 @@ public class ClientSyncStart implements UdpMessage
             slotByte = buf.readByte();
             
             {
-                byte lo = (byte) ((slotByte & 0xf0));
+                byte lo = (byte) (slotByte & 0xf0);
                 byte hi = (byte) ((slotByte & 0x0f) >> 1);
 
                 lo >>= 1;

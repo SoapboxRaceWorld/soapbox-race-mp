@@ -39,10 +39,12 @@ public class SyncStartHandler extends BaseHandler
             racer.getSyncStart().read(buf);
             racer.setSyncStartReady(true);
 
-            for (Racer sessionRacer : session.getRacers())
+            answer(racer);
+
+            if (session.allPlayersSyncStartReady())
             {
-                if (sessionRacer.isSyncStartReady())
-                    answer(racer);
+                logger.debug("Sending sync start to all");
+                session.getRacers().forEach(this::answer);
             }
         } else
         {
