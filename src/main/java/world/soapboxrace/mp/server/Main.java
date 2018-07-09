@@ -76,11 +76,12 @@ public class Main
         System.out.println(shortToString((short) 65535, 4));
         System.out.println(shortToString((short) 61439, 4));
 
-        int x = Short.toUnsignedInt((short) 65535);
+        int x = 0xFFFF;
 
         x = Integer.reverse(x);
-
-        x &= ~(1 << (31 - 17 - 1));
+//
+        x &= ~(1 << 31 - (1 - 1));
+//        x &= ~(1 << (31 - 17 - 1));
 
         System.out.println(intToString(x, 4));
 

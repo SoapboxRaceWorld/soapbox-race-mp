@@ -20,7 +20,7 @@ public class NettyServer
         this.port = port;
     }
 
-    public ChannelFuture start() throws InterruptedException
+    public ChannelFuture start()
     {
         workerGroup = new NioEventLoopGroup();
 
