@@ -80,7 +80,7 @@ public class Main
 
         x = Integer.reverse(x);
 //
-        x &= ~(1 << 31 - (1 - 1));
+        x &= ~(1 << 31 - (4 - 1));
 //        x &= ~(1 << (31 - 17 - 1));
 
         System.out.println(intToString(x, 4));

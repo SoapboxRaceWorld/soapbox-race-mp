@@ -36,9 +36,12 @@ public class ServerSync implements UdpMessage
         int x = 65535;
         x = Integer.reverse(x);
 
-        if (unknownCounter != (short) 0xFFFF)
+        if ((int) unknownCounter != 0xFFFF)
         {
-            x &= ~(1 << (31 - (unknownCounter - 1)));
+            if (unknownCounter <= 16)
+            {
+                x &= ~(1 << (31 - (unknownCounter - 1)));
+            }
         }
 
         byte[] hsBytes = ByteBuffer.allocate(4).putInt(x).array();
