@@ -59,7 +59,7 @@ public class ServerSyncStart implements UdpMessage
         // write subpacket
         buffer.put((byte) 0x00); // type
         buffer.put((byte) 0x06); // type
-        buffer.put((byte) 0x00); // grid index
+        buffer.put(gridIndex);
         buffer.putInt(sessionID);
 
         byte slots = 0;
