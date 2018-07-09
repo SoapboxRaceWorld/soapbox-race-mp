@@ -43,10 +43,10 @@ public class ServerSync implements UdpMessage
 
         int x = 0xFFFF;
 
-        x = Integer.reverse(x);
-
         if ((int) unknownCounter != 0xFFFF)
         {
+            x = Integer.reverse(x);
+            
             if (unknownCounter > 1)
             {
                 x &= ~(1 << (31 - unknownCounter - 1));
