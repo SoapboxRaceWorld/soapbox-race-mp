@@ -40,11 +40,25 @@ public class ServerSyncStart implements UdpMessage
 
         buffer.put(unkCounterBytes);
 
-        int x = Short.toUnsignedInt((short) 65535);
+//        int x = 65535;
+//        x = Integer.reverse(x);
+//
+//        if (unknownCounter != (short) 0xFFFF && unknownCounter > 1)
+//        {
+//            x &= ~(1 << (31 - unknownCounter - 1));
+//        }
+
+        int x = 0xFFFF;
 
         x = Integer.reverse(x);
 
-        x &= ~(1 << (31 - unknownCounter - 1));
+        if ((int) unknownCounter != 0xFFFF)
+        {
+            if (unknownCounter > 1)
+            {
+                x &= ~(1 << (31 - unknownCounter - 1));
+            }
+        }
 
         byte[] hsBytes = ByteBuffer.allocate(4).putInt(x).array();
 

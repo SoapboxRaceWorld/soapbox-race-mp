@@ -4,8 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import world.soapboxrace.mp.race.RaceSession;
-import world.soapboxrace.mp.race.RaceSessionManager;
 import world.soapboxrace.mp.race.Racer;
 import world.soapboxrace.mp.race.RacerManager;
 import world.soapboxrace.mp.server.netty.messages.ClientSync;
@@ -43,7 +41,7 @@ public class SyncHandler extends BaseHandler
             
             serverSync.cliHelloTime = racer.getCliHelloTime();
             serverSync.time = (short) racer.getTimeDiff();
-            serverSync.counter = racer.getSequenceC();
+            serverSync.counter = racer.getSyncSequence();
             serverSync.unknownCounter = clientSync.unknownCounter;
             
             serverSync.write(buffer);
@@ -51,9 +49,10 @@ public class SyncHandler extends BaseHandler
             racer.send(buffer);
             
             logger.debug("Sent sync response");
+        } else
+        {
+            super.channelRead(ctx, msg);
         }
-        
-        super.channelRead(ctx, msg);
     }
 
     private boolean isSync(byte[] data)

@@ -30,7 +30,7 @@ public class Racer
 
     private boolean isSyncStartReady, isSyncReady, isParserOK;
 
-    private short sequenceA, sequenceB, sequenceC;
+    private short sequenceA, sequenceB, syncSequence;
 
     private byte[] playerInfoPacket;
 
@@ -48,7 +48,7 @@ public class Racer
         this.isSyncStartReady = false;
         this.isSyncReady = false;
         this.isParserOK = false;
-        this.sequenceC = 1;
+        this.syncSequence = 1;
     }
 
     public int getSessionID()
@@ -126,9 +126,9 @@ public class Racer
         return sequenceB++;
     }
 
-    public short getSequenceC()
+    public short getSyncSequence()
     {
-        return sequenceC++;
+        return syncSequence++;
     }
 
     public boolean isParserOK()

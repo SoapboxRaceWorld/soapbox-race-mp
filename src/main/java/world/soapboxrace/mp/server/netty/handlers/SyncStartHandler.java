@@ -44,9 +44,10 @@ public class SyncStartHandler extends BaseHandler
                 if (sessionRacer.isSyncStartReady())
                     answer(racer);
             }
+        } else
+        {
+            super.channelRead(ctx, msg);
         }
-
-        super.channelRead(ctx, msg);
     }
 
     private void answer(Racer racer)
@@ -61,7 +62,7 @@ public class SyncStartHandler extends BaseHandler
         syncStart.numPlayers = subPacket.maxPlayers;
         syncStart.unknownCounter = racerSyncStart.unknownCounter;
         syncStart.cliHelloTime = racer.getCliHelloTime();
-        syncStart.counter = racer.getSequenceC();
+        syncStart.counter = racer.getSyncSequence();
         syncStart.sessionID = racer.getSessionID();
         syncStart.time = (short) racer.getTimeDiff();
 

@@ -45,14 +45,16 @@ public class InfoAfterSyncHandler extends BaseHandler
                     }
                 }
             }
+        } else
+        {
+            super.channelRead(ctx, msg);
         }
-
-        super.channelRead(ctx, msg);
     }
 
     private boolean isInfoAfterSync(byte[] data)
     {
-        return data[0] == 0x01;
+        return data.length >= 16
+                && data[0] == 0x01;
     }
 
     private ByteBuffer transformByteTypeB(Racer racerTo, byte[] packet, Racer racerFrom)

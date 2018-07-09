@@ -4,8 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import world.soapboxrace.mp.race.RaceSession;
-import world.soapboxrace.mp.race.RaceSessionManager;
 import world.soapboxrace.mp.race.Racer;
 import world.soapboxrace.mp.race.RacerManager;
 import world.soapboxrace.mp.server.netty.messages.ClientKeepAlive;
@@ -38,7 +36,7 @@ public class KeepAliveHandler extends BaseHandler
             clientKeepAlive.read(buf);
 
             ServerKeepAlive response = new ServerKeepAlive();
-            response.counter = racer.getSequenceC();
+            response.counter = racer.getSyncSequence();
             response.helloTime = racer.getCliHelloTime();
             response.time = (short) racer.getTimeDiff();
             response.unknownCounter = clientKeepAlive.unknownCounter;
@@ -49,9 +47,10 @@ public class KeepAliveHandler extends BaseHandler
             racer.send(buffer);
             
             logger.debug("Sent keep-alive response");
+        } else
+        {
+            super.channelRead(ctx, msg);
         }
-
-        super.channelRead(ctx, msg);
     }
 
     private boolean isKeepAlive(byte[] data)

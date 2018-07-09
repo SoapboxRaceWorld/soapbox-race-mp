@@ -2,7 +2,6 @@ package world.soapboxrace.mp.server.netty.messages;
 
 import io.netty.buffer.ByteBuf;
 import world.soapboxrace.mp.server.netty.UdpMessage;
-import world.soapboxrace.mp.util.BitConverter;
 
 import java.nio.ByteBuffer;
 
@@ -34,8 +33,7 @@ public class ClientHello implements UdpMessage
         
         buf.skipBytes(1);
         
-        cliHelloTime = (short) buf.getUnsignedShort(69);
-        cliHelloTime &= 0xFFFF;
+        cliHelloTime = (short) (buf.getUnsignedShort(69) & 0xFFFF);
         
         playerIndex = cryptoTicket[0];
         numPlayers = cryptoTicket[9];

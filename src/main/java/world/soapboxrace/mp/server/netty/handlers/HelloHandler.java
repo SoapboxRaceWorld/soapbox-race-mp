@@ -52,12 +52,13 @@ public class HelloHandler extends BaseHandler
             {
                 logger.warn("Racer already exists! Sending response anyway.");
             }
-            
+
             session.addRacer(racer);
             sendHelloResponse(racer);
+        } else
+        {
+            super.channelRead(ctx, msg);
         }
-
-        super.channelRead(ctx, msg);
     }
 
     private boolean isHello(byte[] packet)
@@ -73,11 +74,11 @@ public class HelloHandler extends BaseHandler
         ServerHello serverHello = new ServerHello();
         serverHello.helloTime = RaceSessionManager.get(racer.getSessionID()).getTimeBase();
         serverHello.time = (short) racer.getTimeDiff();
-        
+
         serverHello.write(buffer);
-        
+
         racer.send(buffer);
-        
+
         logger.debug("Sent HELLO response");
     }
 }
