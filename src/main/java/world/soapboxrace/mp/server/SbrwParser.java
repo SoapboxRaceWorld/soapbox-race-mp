@@ -96,7 +96,13 @@ public class SbrwParser implements IParser
     @Override
     public boolean isOk()
     {
-        return playerInfo != null && carState != null;
+        return isPlayerInfoOk() && isCarStateOk();
+    }
+
+    @Override
+    public boolean isPlayerInfoOk()
+    {
+        return playerInfo != null;
     }
 
     @Override
@@ -106,38 +112,58 @@ public class SbrwParser implements IParser
         {
             byte[] statePosPacket = getStatePosPacket(timeDiff);
             int bufferSize = header.length + CRC_BYTES.length;
-            
-            if (playerInfo != null) {
+
+            if (playerInfo != null)
+            {
                 bufferSize += playerInfo.length;
             }
-            
-            if (statePosPacket != null) {
+
+            if (statePosPacket != null)
+            {
                 bufferSize += statePosPacket.length;
             }
-            
+
 //            int bufferSize = header.length + playerInfo.length + Objects.requireNonNull(statePosPacket).length + CRC_BYTES.length;
             ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
-            
+
             byteBuffer.put(header);
 
-            if (playerInfo != null) {
+            if (playerInfo != null)
+            {
                 byteBuffer.put(playerInfo);
             }
 
-            if (statePosPacket != null) {
+            if (statePosPacket != null)
+            {
                 byteBuffer.put(statePosPacket);
             }
-            
+
             byteBuffer.put(CRC_BYTES);
-            
-//            byteBuffer.put(header);
-//            byteBuffer.put(playerInfo);
-//            byteBuffer.put(statePosPacket);
-//            byteBuffer.put(CRC_BYTES);
+
             byte[] array = byteBuffer.array();
             statePosPacket = null;
             return array;
         }
+        return null;
+    }
+
+    @Override
+    public byte[] getPlayerInfoPacket(long timeDiff)
+    {
+        if (isPlayerInfoOk())
+        {
+            int bufferSize = header.length + playerInfo.length + CRC_BYTES.length;
+
+//            int bufferSize = header.length + playerInfo.length + Objects.requireNonNull(statePosPacket).length + CRC_BYTES.length;
+            ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
+
+            byteBuffer.put(header);
+            byteBuffer.put(playerInfo);
+            byteBuffer.put(CRC_BYTES);
+
+            return byteBuffer.array();
+        }
+
         return null;
     }
 

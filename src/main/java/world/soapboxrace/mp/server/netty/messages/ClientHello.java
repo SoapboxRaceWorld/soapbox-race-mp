@@ -9,7 +9,7 @@ public class ClientHello implements UdpMessage
 {
     public byte[] cryptoTicket;
     public byte[] ticketIV;
-    public short cliHelloTime;
+    public int cliHelloTime;
     public byte numPlayers;
     public byte playerIndex;
     public int sessionID;
@@ -33,7 +33,7 @@ public class ClientHello implements UdpMessage
         
         buf.skipBytes(1);
         
-        cliHelloTime = (short) (buf.getUnsignedShort(69) & 0xFFFF);
+        cliHelloTime = buf.getUnsignedShort(69);
         
         playerIndex = cryptoTicket[0];
         numPlayers = cryptoTicket[9];

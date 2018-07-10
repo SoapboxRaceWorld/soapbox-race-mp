@@ -4,10 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import world.soapboxrace.mp.race.RaceSession;
-import world.soapboxrace.mp.race.RaceSessionManager;
-import world.soapboxrace.mp.race.Racer;
-import world.soapboxrace.mp.race.RacerManager;
+import world.soapboxrace.mp.race.*;
 import world.soapboxrace.mp.server.netty.messages.ClientHello;
 import world.soapboxrace.mp.server.netty.messages.ServerHello;
 
@@ -55,6 +52,8 @@ public class HelloHandler extends BaseHandler
 
             session.addRacer(racer);
             sendHelloResponse(racer);
+            
+            racer.setStatus(RacerStatus.WAITING_HELLO_SYNC);
         } else
         {
             super.channelRead(ctx, msg);

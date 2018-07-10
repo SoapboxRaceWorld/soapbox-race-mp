@@ -4,6 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
+import world.soapboxrace.mp.race.RaceSession;
+import world.soapboxrace.mp.race.RaceSessionManager;
 import world.soapboxrace.mp.race.Racer;
 import world.soapboxrace.mp.race.RacerManager;
 import world.soapboxrace.mp.server.netty.messages.ClientKeepAlive;
@@ -20,29 +22,30 @@ public class KeepAliveHandler extends BaseHandler
         ByteBuf buf = packet.content();
         byte[] data = ByteBufUtil.getBytes(buf);
 
-        Racer racer = RacerManager.get(packet.sender().getPort());
+        int port = packet.sender().getPort();
+        Racer racer = RacerManager.get(port);
 
         if (racer == null)
         {
-            logger.error("Racer is null!");
+            logger.error("Racer not found!");
             return;
         }
 
+        RaceSession session = RaceSessionManager.get(racer);
+
         if (isKeepAlive(data))
         {
-            logger.debug("Got keep-alive packet");
-
             ClientKeepAlive clientKeepAlive = new ClientKeepAlive();
             clientKeepAlive.read(buf);
 
-            ServerKeepAlive response = new ServerKeepAlive();
-            response.counter = racer.getSyncSequence();
-            response.helloTime = racer.getCliHelloTime();
-            response.time = (short) racer.getTimeDiff();
-            response.unknownCounter = clientKeepAlive.unknownCounter;
+            ServerKeepAlive serverKeepAlive = new ServerKeepAlive();
+            serverKeepAlive.unknownCounter = clientKeepAlive.unknownCounter;
+            serverKeepAlive.time = clientKeepAlive.time;
+            serverKeepAlive.helloTime = clientKeepAlive.cliHelloTime;
+            serverKeepAlive.counter = racer.getSyncSequence();
 
             ByteBuffer buffer = ByteBuffer.allocate(17);
-            response.write(buffer);
+            serverKeepAlive.write(buffer);
             
             racer.send(buffer);
             

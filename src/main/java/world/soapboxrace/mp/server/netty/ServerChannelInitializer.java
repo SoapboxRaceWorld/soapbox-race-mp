@@ -34,9 +34,9 @@ public class ServerChannelInitializer extends ChannelInitializer<DatagramChannel
         // Messages
         pipeline.addLast("hello", new HelloHandler());
         pipeline.addLast("syncStart", new SyncStartHandler());
-        pipeline.addLast("infoBeforeSync", new InfoBeforeSyncHandler());
         pipeline.addLast("sync", new SyncHandler());
         pipeline.addLast("keepAlive", new KeepAliveHandler());
+        pipeline.addLast("infoBeforeSync", new InfoBeforeSyncHandler());
         pipeline.addLast("infoAfterSync", new InfoAfterSyncHandler());
 
         pipeline.addLast(new ChannelInboundHandlerAdapter()

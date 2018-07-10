@@ -10,13 +10,13 @@ public class RaceSession
 {
     private final int sessionID;
 
-    private final short timeBase;
+    private final int timeBase;
 
     private final List<Racer> racers;
 
     private final Logger logger;
 
-    public RaceSession(int sessionID, short timeBase)
+    public RaceSession(int sessionID, int timeBase)
     {
         this.sessionID = sessionID;
         this.timeBase = timeBase;
@@ -29,7 +29,7 @@ public class RaceSession
         return sessionID;
     }
 
-    public short getTimeBase()
+    public int getTimeBase()
     {
         return timeBase;
     }
@@ -58,5 +58,10 @@ public class RaceSession
     public boolean allPlayersOK()
     {
         return racers.stream().allMatch(Racer::isParserOK);
+    }
+    
+    public boolean allPlayersInfoOK()
+    {
+        return racers.stream().allMatch(Racer::isInfoOK);
     }
 }

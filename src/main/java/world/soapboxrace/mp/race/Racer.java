@@ -1,5 +1,7 @@
 package world.soapboxrace.mp.race;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
@@ -16,7 +18,7 @@ public class Racer
 
     private final long timeStarted;
 
-    private final RacerInfo racerInfo;
+    private RacerStatus status;
 
     private final ChannelHandlerContext ctx;
 
@@ -26,15 +28,13 @@ public class Racer
 
     private final SbrwParser parser;
 
-    private final short cliHelloTime;
+    private final int cliHelloTime;
 
-    private boolean isSyncStartReady, isSyncReady, isParserOK;
+    private boolean isSyncStartReady, isSyncReady, isParserOK, isInfoOK;
 
-    private short sequenceA, sequenceB, syncSequence;
+    private short sequenceA, sequenceB, syncSequence, preInfoSequence;
 
-    private byte[] playerInfoPacket;
-
-    public Racer(int sessionID, byte clientIndex, ChannelHandlerContext ctx, DatagramPacket firstPacket, short cliHelloTime)
+    public Racer(int sessionID, byte clientIndex, ChannelHandlerContext ctx, DatagramPacket firstPacket, int cliHelloTime)
     {
         this.sessionID = sessionID;
         this.clientIndex = clientIndex;
@@ -42,13 +42,14 @@ public class Racer
         this.firstPacket = firstPacket;
         this.cliHelloTime = cliHelloTime;
         this.timeStarted = System.currentTimeMillis();
-        this.racerInfo = new RacerInfo();
         this.syncStart = new ClientSyncStart();
         this.parser = new SbrwParser();
-        this.isSyncStartReady = false;
-        this.isSyncReady = false;
-        this.isParserOK = false;
+        this.isParserOK =
+                this.isInfoOK =
+                        this.isSyncReady =
+                                this.isSyncStartReady = false;
         this.syncSequence = 1;
+        this.status = RacerStatus.WAITING_HELLO;
     }
 
     public int getSessionID()
@@ -66,11 +67,6 @@ public class Racer
         return timeStarted;
     }
 
-    public RacerInfo getRacerInfo()
-    {
-        return racerInfo;
-    }
-
     public long getTimeDiff()
     {
         return RaceSessionManager.get(sessionID).getTimeBase() + (System.currentTimeMillis() - timeStarted);
@@ -83,7 +79,11 @@ public class Racer
 
     public void send(byte[] data)
     {
-        ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(data), firstPacket.sender()));
+        final ByteBuf buffer = Unpooled.copiedBuffer(data);
+        System.out.println("send to " + firstPacket.sender().getPort() + ":");
+        System.out.println(ByteBufUtil.prettyHexDump(buffer));
+        
+        ctx.writeAndFlush(new DatagramPacket(buffer, firstPacket.sender()));
     }
 
     public ClientSyncStart getSyncStart()
@@ -111,7 +111,7 @@ public class Racer
         isSyncReady = syncReady;
     }
 
-    public short getCliHelloTime()
+    public int getCliHelloTime()
     {
         return cliHelloTime;
     }
@@ -136,14 +136,50 @@ public class Racer
         return isParserOK;
     }
 
+    public boolean isInfoOK()
+    {
+        return isInfoOK;
+    }
+
     public void parsePacket(byte[] data)
     {
         this.parser.parse(data);
         this.isParserOK = this.parser.isOk();
+        this.isInfoOK = this.parser.isPlayerInfoOk();
     }
 
     public byte[] getPlayerPacket()
     {
         return this.parser.getPlayerPacket(getTimeDiff());
+    }
+
+    public byte[] getCarStatePacket()
+    {
+        return this.parser.getCarStatePacket(getTimeDiff());
+    }
+
+    public byte[] getPlayerInfoPacket()
+    {
+        return this.parser.getPlayerInfoPacket(getTimeDiff());
+    }
+
+    public short getPreInfoSequence()
+    {
+        return preInfoSequence;
+    }
+
+    public void incrementPreInfoSequence()
+    {
+        preInfoSequence++;
+    }
+
+    public RacerStatus getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus(RacerStatus status)
+    {
+        this.status = status;
     }
 }

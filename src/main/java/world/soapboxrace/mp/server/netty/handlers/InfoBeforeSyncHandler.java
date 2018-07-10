@@ -2,14 +2,13 @@ package world.soapboxrace.mp.server.netty.handlers;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import world.soapboxrace.mp.race.RaceSession;
 import world.soapboxrace.mp.race.RaceSessionManager;
 import world.soapboxrace.mp.race.Racer;
 import world.soapboxrace.mp.race.RacerManager;
-import world.soapboxrace.mp.server.netty.messages.ClientSyncStart;
-import world.soapboxrace.mp.server.netty.messages.ServerSyncStart;
 
 import java.nio.ByteBuffer;
 
@@ -22,11 +21,12 @@ public class InfoBeforeSyncHandler extends BaseHandler
         ByteBuf buf = packet.content();
         byte[] data = ByteBufUtil.getBytes(buf);
 
-        Racer racer = RacerManager.get(packet.sender().getPort());
+        int port = packet.sender().getPort();
+        Racer racer = RacerManager.get(port);
 
         if (racer == null)
         {
-            logger.error("Racer is null!");
+            logger.error("Racer not found!");
             return;
         }
 
@@ -34,34 +34,22 @@ public class InfoBeforeSyncHandler extends BaseHandler
 
         if (isInfoBeforeSync(data))
         {
-            logger.debug("Got info before sync");
+            logger.debug("got info before sync");
+
             racer.parsePacket(data);
 
-            if (session.allPlayersOK())
+            if (session.allPlayersInfoOK())
             {
-                logger.debug("All players marked as OK");
-
-                session.getRacers().forEach(this::broadcastInfoFrom);
+//                System.out.println("info hexdump");
+//                System.out.println(ByteBufUtil.prettyHexDump(Unpooled.copiedBuffer(
+//                        transformPlayerPacket(racer.getPlayerInfoPacket(), racer, racer.getClientIndex())
+//                )));
+                logger.debug("all players OK!");
+                doSessionBroadcast(session);
             }
         } else
         {
             super.channelRead(ctx, msg);
-        }
-    }
-
-    private void broadcastInfoFrom(Racer racer)
-    {
-        RaceSession session = RaceSessionManager.get(racer);
-
-        if (session.allPlayersOK())
-        {
-            for (Racer sessionRacer : session.getRacers())
-            {
-                if (sessionRacer.getClientIndex() == racer.getClientIndex()) continue;
-
-                sessionRacer.send(transformPacket(racer.getPlayerPacket(), racer));
-                logger.debug("{} -> {}", racer.getClientIndex(), sessionRacer.getClientIndex());
-            }
         }
     }
 
@@ -74,16 +62,30 @@ public class InfoBeforeSyncHandler extends BaseHandler
                 && data[9] == (byte) 0xff;
     }
 
-    private ByteBuffer transformPacket(byte[] data, Racer racer)
+    private void doSessionBroadcast(RaceSession session)
     {
-        if (data.length < 4)
-            return null;
+        for (Racer racer : session.getRacers())
+        {
+            for (Racer otherRacer : session.getRacers())
+            {
+                if (otherRacer.getClientIndex() == racer.getClientIndex()) continue;
 
+                otherRacer.send(transformPlayerPacket(racer.getPlayerPacket(), otherRacer, racer.getClientIndex()));
+                logger.debug("{} -> {}", racer.getClientIndex(), otherRacer.getClientIndex());
+            }
+
+            racer.incrementPreInfoSequence();
+        }
+    }
+
+    private ByteBuffer transformPlayerPacket(byte[] data, Racer toRacer, byte racerIndex)
+    {
         ByteBuffer buffer = ByteBuffer.allocate(data.length - 3);
-        buffer.put((byte) 0x01);
-        buffer.put(racer.getClientIndex());
+        byte[] seqBytes = ByteBuffer.allocate(2).putShort(toRacer.getPreInfoSequence()).array();
 
-        buffer.put(new byte[]{0x00, 0x00});
+        buffer.put((byte) 0x01);
+        buffer.put(racerIndex);
+        buffer.put(seqBytes);
 
         for (int i = 6; i < data.length - 1; i++)
         {
@@ -91,25 +93,5 @@ public class InfoBeforeSyncHandler extends BaseHandler
         }
 
         return buffer;
-    }
-
-    private void answerSyncStart(Racer racer)
-    {
-        ServerSyncStart syncStart = new ServerSyncStart();
-        ByteBuffer buffer = ByteBuffer.allocate(25);
-
-        ClientSyncStart racerSyncStart = racer.getSyncStart();
-        ClientSyncStart.SubPacket subPacket = racerSyncStart.subPacket;
-
-        syncStart.gridIndex = subPacket.playerSlot;
-        syncStart.numPlayers = subPacket.maxPlayers;
-        syncStart.unknownCounter = racerSyncStart.unknownCounter;
-        syncStart.cliHelloTime = racer.getCliHelloTime();
-        syncStart.counter = racer.getSyncSequence();
-        syncStart.sessionID = racer.getSessionID();
-        syncStart.time = (short) racer.getTimeDiff();
-
-        syncStart.write(buffer);
-        racer.send(buffer);
     }
 }

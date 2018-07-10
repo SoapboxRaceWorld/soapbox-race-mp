@@ -9,7 +9,7 @@ public class ServerSync implements UdpMessage
 {
     public short counter;
     public short time;
-    public short cliHelloTime;
+    public int cliHelloTime;
     public short unknownCounter;
 
     @Override
@@ -23,7 +23,7 @@ public class ServerSync implements UdpMessage
     {
         byte[] sequenceBytes = ByteBuffer.allocate(2).putShort(counter).array();
         byte[] timeBytes = ByteBuffer.allocate(2).putShort(time).array();
-        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort(cliHelloTime).array();
+        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort((short) cliHelloTime).array();
         byte[] ucBytes = ByteBuffer.allocate(2).putShort(unknownCounter).array();
 
         buffer.put((byte) 0x00);
@@ -33,8 +33,7 @@ public class ServerSync implements UdpMessage
         buffer.put(helloTimeBytes);
         buffer.put(ucBytes);
 
-        int x = 65535;
-        x = Integer.reverse(x);
+        int x = Integer.reverse(0xFFFF);
 
         if ((int) unknownCounter != 0xFFFF)
         {

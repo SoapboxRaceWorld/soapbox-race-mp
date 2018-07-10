@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 public class ServerHello implements UdpMessage
 {
     public short time;
-    public short helloTime;
+    public int helloTime;
     
     @Override
     public void read(ByteBuf buf)
@@ -30,7 +30,7 @@ public class ServerHello implements UdpMessage
         buffer.put((byte) 0x01);
         
         byte[] timeBytes = ByteBuffer.allocate(2).putShort(time).array();
-        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort(helloTime).array();
+        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort((short) helloTime).array();
         
         buffer.put(timeBytes);
         buffer.put(helloTimeBytes);

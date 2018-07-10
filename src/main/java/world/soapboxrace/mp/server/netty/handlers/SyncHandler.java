@@ -20,35 +20,32 @@ public class SyncHandler extends BaseHandler
         ByteBuf buf = packet.content();
         byte[] data = ByteBufUtil.getBytes(buf);
 
-        Racer racer = RacerManager.get(packet.sender().getPort());
+        int port = packet.sender().getPort();
+        Racer racer = RacerManager.get(port);
 
         if (racer == null)
         {
-            logger.error("Racer is null!");
+            logger.error("Racer not found!");
             return;
         }
 
         if (isSync(data))
         {
             logger.debug("Got sync packet");
-            racer.setSyncReady(true);
 
             ClientSync clientSync = new ClientSync();
             clientSync.read(buf);
 
-            ServerSync serverSync = new ServerSync();
-            ByteBuffer buffer = ByteBuffer.allocate(22);
+            ServerSync response = new ServerSync();
+            response.unknownCounter = clientSync.unknownCounter;
+            response.counter = clientSync.counter;
+            response.time = clientSync.time;
+            response.cliHelloTime = clientSync.cliHelloTime;
             
-            serverSync.cliHelloTime = racer.getCliHelloTime();
-            serverSync.time = (short) racer.getTimeDiff();
-            serverSync.counter = racer.getSyncSequence();
-            serverSync.unknownCounter = clientSync.unknownCounter;
+            ByteBuffer responseBuf = ByteBuffer.allocate(22);
+            response.write(responseBuf);
             
-            serverSync.write(buffer);
-            
-            racer.send(buffer);
-            
-            logger.debug("Sent sync response");
+            racer.send(responseBuf);
         } else
         {
             super.channelRead(ctx, msg);
@@ -59,6 +56,7 @@ public class SyncHandler extends BaseHandler
     {
         return data.length == 22
                 && data[0] == 0x00
-                && data[3] == 0x07;
+                && data[3] == 0x07
+                && data[4] == 0x02;
     }
 }

@@ -12,17 +12,17 @@ public class ClientSyncStart implements UdpMessage
     public short counter;
 
     // not the same value as the server
-    public short time;
+    public int time;
 
     // different than the value sent in hello? very weird
-    public short cliHelloTime;
+    public int cliHelloTime;
 
     // sometimes 0xFFFF (65,535), sometimes smaller values. 
     // this needs to be used when computing handshakeSync for the response
-    public short unknownCounter;
+    public int unknownCounter;
 
     // based on unknownCounter; (1, 65535) = 0xFFFF, 2 = 0xBFFF, 3 = 0xDFFF
-    public short handshakeSync;
+    public int handshakeSync;
 
     // extra info, type 0x00, size 0x06
     public SubPacket subPacket;
@@ -34,10 +34,10 @@ public class ClientSyncStart implements UdpMessage
         counter = (short) buf.readUnsignedShort();
         buf.skipBytes(2);
         
-        time = (short) buf.readUnsignedShort();
-        cliHelloTime = (short) buf.readUnsignedShort();
-        unknownCounter = (short) buf.readUnsignedShort();
-        handshakeSync = (short) buf.readUnsignedShort();
+        time =  buf.readUnsignedShort();
+        cliHelloTime = buf.readUnsignedShort();
+        unknownCounter = buf.readUnsignedShort();
+        handshakeSync = buf.readUnsignedShort();
         
         subPacket = new SubPacket();
         subPacket.read(buf);

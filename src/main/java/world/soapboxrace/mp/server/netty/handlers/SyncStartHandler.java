@@ -22,11 +22,12 @@ public class SyncStartHandler extends BaseHandler
         ByteBuf buf = packet.content();
         byte[] data = ByteBufUtil.getBytes(buf);
 
-        Racer racer = RacerManager.get(packet.sender().getPort());
+        int port = packet.sender().getPort();
+        Racer racer = RacerManager.get(port);
 
         if (racer == null)
         {
-            logger.error("Racer is null!");
+            logger.error("Racer not found!");
             return;
         }
 
@@ -34,42 +35,33 @@ public class SyncStartHandler extends BaseHandler
 
         if (isSyncStart(data))
         {
-            logger.debug("Got sync-start packet");
-
             racer.getSyncStart().read(buf);
             racer.setSyncStartReady(true);
 
-            answer(racer);
+            logger.debug("Got sync start:");
+            logger.debug("\tcounter        = {}", racer.getSyncStart().counter);
+            logger.debug("\thandshakeSync  = {}", racer.getSyncStart().handshakeSync);
+            logger.debug("\tunknownCounter = {}", racer.getSyncStart().unknownCounter);
+            logger.debug("\tcliHelloTime   = {}", racer.getSyncStart().cliHelloTime);
+            logger.debug("\ttime           = {}", racer.getSyncStart().time);
+            logger.debug("\tSubpacket:");
+            logger.debug("\t\tmaxPlayers = {}", racer.getSyncStart().subPacket.maxPlayers);
+            logger.debug("\t\tplayerSlot = {}", racer.getSyncStart().subPacket.playerSlot);
+            logger.debug("\t\tslotByte   = {}", Integer.toString(racer.getSyncStart().subPacket.slotByte, 16));
+            logger.debug("\t\tsessionID  = {}", racer.getSyncStart().subPacket.sessionID);
+            logger.debug("\t\tunknown    = {}", racer.getSyncStart().subPacket.unknown);
+
+            answer(racer, racer.getSyncStart());
 
             if (session.allPlayersSyncStartReady())
             {
-                logger.debug("Sending sync start to all");
-                session.getRacers().forEach(this::answer);
+                logger.debug("Re-sending sync start");
+                session.getRacers().forEach(r -> answer(r, r.getSyncStart()));
             }
         } else
         {
             super.channelRead(ctx, msg);
         }
-    }
-
-    private void answer(Racer racer)
-    {
-        ServerSyncStart syncStart = new ServerSyncStart();
-        ByteBuffer buffer = ByteBuffer.allocate(25);
-
-        ClientSyncStart racerSyncStart = racer.getSyncStart();
-        ClientSyncStart.SubPacket subPacket = racerSyncStart.subPacket;
-
-        syncStart.gridIndex = subPacket.playerSlot;
-        syncStart.numPlayers = subPacket.maxPlayers;
-        syncStart.unknownCounter = racerSyncStart.unknownCounter;
-        syncStart.cliHelloTime = racer.getCliHelloTime();
-        syncStart.counter = racer.getSyncSequence();
-        syncStart.sessionID = racer.getSessionID();
-        syncStart.time = (short) racer.getTimeDiff();
-
-        syncStart.write(buffer);
-        racer.send(buffer);
     }
 
     private boolean isSyncStart(byte[] data)
@@ -78,5 +70,24 @@ public class SyncStartHandler extends BaseHandler
                 && data[0] == 0x00
                 && data[3] == 0x07
                 && data[4] == 0x02;
+    }
+
+    private void answer(Racer racer, ClientSyncStart clientSyncStart)
+    {
+//        ClientSyncStart clientSyncStart = racer.getSyncStart();
+        ServerSyncStart response = new ServerSyncStart();
+        response.unknownCounter = clientSyncStart.unknownCounter;
+//        response.time = (int) racer.getTimeDiff();
+        response.time = clientSyncStart.time;
+        response.sessionID = clientSyncStart.subPacket.sessionID;
+        response.counter = racer.getSyncSequence();
+        response.cliHelloTime = clientSyncStart.cliHelloTime;
+//        response.cliHelloTime = racer.getCliHelloTime();
+        response.numPlayers = clientSyncStart.subPacket.maxPlayers;
+        response.gridIndex = clientSyncStart.subPacket.playerSlot;
+
+        ByteBuffer buffer = ByteBuffer.allocate(25);
+        response.write(buffer);
+        racer.send(buffer);
     }
 }

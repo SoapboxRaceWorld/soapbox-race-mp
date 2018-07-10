@@ -8,10 +8,10 @@ import java.nio.ByteBuffer;
 // session sync26
 public class ServerSyncStart implements UdpMessage
 {
-    public short counter;
-    public short time;
-    public short cliHelloTime;
-    public short unknownCounter;
+    public int counter;
+    public int time;
+    public int cliHelloTime;
+    public int unknownCounter;
 
     // subpacket
     public byte gridIndex;
@@ -27,10 +27,10 @@ public class ServerSyncStart implements UdpMessage
     @Override
     public void write(ByteBuffer buffer)
     {
-        byte[] counterBytes = ByteBuffer.allocate(2).putShort(counter).array();
-        byte[] timeBytes = ByteBuffer.allocate(2).putShort(time).array();
-        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort(cliHelloTime).array();
-        byte[] unkCounterBytes = ByteBuffer.allocate(2).putShort(unknownCounter).array();
+        byte[] counterBytes = ByteBuffer.allocate(2).putShort((short) counter).array();
+        byte[] timeBytes = ByteBuffer.allocate(2).putShort((short) time).array();
+        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort((short) cliHelloTime).array();
+        byte[] unkCounterBytes = ByteBuffer.allocate(2).putShort((short) unknownCounter).array();
 
         buffer.put((byte) 0x00); // mp type
         buffer.put(counterBytes);
@@ -40,12 +40,11 @@ public class ServerSyncStart implements UdpMessage
 
         buffer.put(unkCounterBytes);
 
-        int x = 65535;
-        x = Integer.reverse(x);
+        int x = Integer.reverse(0xFFFF);
 
         if ((int) unknownCounter != 0xFFFF) // 1 -> 0111 ...??? or 1111 ...?
         {
-            if (unknownCounter <= 16 && unknownCounter > 1)
+            if (unknownCounter <= 16)
             {
                 x &= ~(1 << (31 - (unknownCounter - 1)));
             }

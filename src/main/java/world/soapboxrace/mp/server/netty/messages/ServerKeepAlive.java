@@ -9,7 +9,7 @@ public class ServerKeepAlive implements UdpMessage
 {
     public short counter;
     public short time;
-    public short helloTime;
+    public int helloTime;
     public short unknownCounter;
 
     @Override
@@ -23,7 +23,7 @@ public class ServerKeepAlive implements UdpMessage
     {
         byte[] counterBytes = ByteBuffer.allocate(2).putShort(counter).array();
         byte[] timeBytes = ByteBuffer.allocate(2).putShort(time).array();
-        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort(helloTime).array();
+        byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort((short) helloTime).array();
         byte[] unknownCounterBytes = ByteBuffer.allocate(2).putShort(unknownCounter).array();
 
         buffer.put((byte) 0x00);
@@ -33,8 +33,7 @@ public class ServerKeepAlive implements UdpMessage
         buffer.put(helloTimeBytes);
         buffer.put(unknownCounterBytes);
 
-        int x = 65535;
-        x = Integer.reverse(x);
+        int x = Integer.reverse(0xFFFF);
 
         if ((int) unknownCounter != 0xFFFF)
         {

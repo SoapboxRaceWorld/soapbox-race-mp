@@ -9,8 +9,11 @@ public interface IParser
     void parse(byte[] packet);
 
     boolean isOk();
+    
+    boolean isPlayerInfoOk();
 
     byte[] getPlayerPacket(long timeDiff);
+    byte[] getPlayerInfoPacket(long timeDiff);
 
     boolean isCarStateOk();
 

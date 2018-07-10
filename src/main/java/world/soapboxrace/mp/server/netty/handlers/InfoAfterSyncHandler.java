@@ -8,7 +8,6 @@ import world.soapboxrace.mp.race.RaceSession;
 import world.soapboxrace.mp.race.RaceSessionManager;
 import world.soapboxrace.mp.race.Racer;
 import world.soapboxrace.mp.race.RacerManager;
-import world.soapboxrace.mp.util.ArrayReader;
 
 import java.nio.ByteBuffer;
 
@@ -21,11 +20,12 @@ public class InfoAfterSyncHandler extends BaseHandler
         ByteBuf buf = packet.content();
         byte[] data = ByteBufUtil.getBytes(buf);
 
-        Racer racer = RacerManager.get(packet.sender().getPort());
+        int port = packet.sender().getPort();
+        Racer racer = RacerManager.get(port);
 
         if (racer == null)
         {
-            logger.error("Racer is null!");
+            logger.error("Racer not found!");
             return;
         }
 
@@ -33,17 +33,12 @@ public class InfoAfterSyncHandler extends BaseHandler
 
         if (isInfoAfterSync(data))
         {
-            logger.debug("Received info after sync");
+            logger.debug("Got info after sync");
 
-            if (racer.isSyncReady() && session.allPlayersSyncReady())
+            if (session.allPlayersOK())
             {
-                for (Racer sessionRacer : session.getRacers())
-                {
-                    if (sessionRacer.getClientIndex() != racer.getClientIndex())
-                    {
-                        sessionRacer.send(transformByteTypeB(sessionRacer, data, racer));
-                    }
-                }
+                logger.debug("doSessionBroadcast");
+                doSessionBroadcast(session, racer, data);
             }
         } else
         {
@@ -53,74 +48,47 @@ public class InfoAfterSyncHandler extends BaseHandler
 
     private boolean isInfoAfterSync(byte[] data)
     {
-        return data.length >= 16
-                && data[0] == 0x01;
+        return data[0] == 0x01
+                && data.length >= 16;
+    }
+    
+    private void doSessionBroadcast(RaceSession session, Racer racer, byte[] data)
+    {
+        for (Racer sessionRacer : session.getRacers())
+        {
+            if (sessionRacer.getClientIndex() == racer.getClientIndex()) continue;
+
+            sessionRacer.send(transformPacket(data, sessionRacer, racer));
+        }
     }
 
-    private ByteBuffer transformByteTypeB(Racer racerTo, byte[] packet, Racer racerFrom)
+    private ByteBuffer transformPacket(byte[] packet, Racer toRacer, Racer fromRacer)
     {
-        byte[] clone = packet.clone();
-
-        try
-        {
-            clone = fixTime(racerTo, packet);
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        if (clone.length < 4)
-        {
-            return null;
-        }
-
-        byte[] seqArray = ByteBuffer.allocate(2).putShort(racerTo.getSequenceB()).array();
-        ByteBuffer buffer = ByteBuffer.allocate(clone.length - 3);
+        if (packet.length < 4)
+            return ByteBuffer.allocate(0);
+        byte[] seqBytes = ByteBuffer.allocate(2).putShort(toRacer.getSequenceB()).array();
+        byte[] timeArray = ByteBuffer.allocate(2).putShort((short) toRacer.getTimeDiff()).array();
+        ByteBuffer buffer = ByteBuffer.allocate(packet.length - 3);
 
         buffer.put((byte) 0x01);
-        buffer.put(racerFrom.getClientIndex());
-        buffer.put(seqArray);
+        buffer.put(fromRacer.getClientIndex());
+        buffer.put(seqBytes);
+//        buffer.put(new byte[] { 0x00, 0x00 });
 
-        for (int i = 6; i < (clone.length - 1); i++)
+        for (int i = 6; i < (packet.length - 1); i++)
         {
-            buffer.put(clone[i]);
+            if (packet[i] == 0x12 && packet[i + 1] >= 0x1a)
+            {
+                packet[i + 2] = timeArray[0];
+                packet[i + 3] = timeArray[1];
+            }
         }
 
-        buffer.position(4);
-        buffer.put((byte) 0xff);
-        buffer.put((byte) 0xff);
+        for (int i = 6; i < (packet.length - 1); i++)
+        {
+            buffer.put(packet[i]);
+        }
 
         return buffer;
-    }
-
-    private byte[] fixTime(Racer racer, byte[] packet)
-    {
-        byte[] timeArray = ByteBuffer.allocate(2).putShort((short) racer.getTimeDiff()).array();
-
-        ArrayReader reader = new ArrayReader(packet);
-
-        reader.seek(10);
-
-        while (reader.getPosition() < reader.getLength())
-        {
-            byte packetId = reader.readByte();
-
-            if (packetId == (byte) 0xff)
-            {
-                break;
-            }
-
-            byte packetLength = reader.readByte();
-
-            if (packetId == 0x12)
-            {
-                packet[reader.getPosition()] = timeArray[0];
-                packet[reader.getPosition() + 1] = timeArray[1];
-            }
-
-            reader.seek(packetLength, true);
-        }
-
-        return packet;
     }
 }
