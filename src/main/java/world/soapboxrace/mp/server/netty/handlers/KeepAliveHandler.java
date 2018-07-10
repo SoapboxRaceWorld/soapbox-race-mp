@@ -40,8 +40,10 @@ public class KeepAliveHandler extends BaseHandler
 
             ServerKeepAlive serverKeepAlive = new ServerKeepAlive();
             serverKeepAlive.unknownCounter = clientKeepAlive.unknownCounter;
-            serverKeepAlive.time = clientKeepAlive.time;
-            serverKeepAlive.helloTime = clientKeepAlive.cliHelloTime;
+//            serverKeepAlive.time = clientKeepAlive.time;
+//            serverKeepAlive.helloTime = clientKeepAlive.cliHelloTime;
+            serverKeepAlive.time = (int) racer.getTimeDiff();
+            serverKeepAlive.helloTime = racer.getCliHelloTime();
             serverKeepAlive.counter = racer.getSyncSequence();
 
             ByteBuffer buffer = ByteBuffer.allocate(17);

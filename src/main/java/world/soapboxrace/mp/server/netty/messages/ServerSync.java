@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 
 public class ServerSync implements UdpMessage
 {
-    public short counter;
-    public short time;
+    public int counter;
+    public int time;
     public int cliHelloTime;
     public short unknownCounter;
 
@@ -21,8 +21,8 @@ public class ServerSync implements UdpMessage
     @Override
     public void write(ByteBuffer buffer)
     {
-        byte[] sequenceBytes = ByteBuffer.allocate(2).putShort(counter).array();
-        byte[] timeBytes = ByteBuffer.allocate(2).putShort(time).array();
+        byte[] sequenceBytes = ByteBuffer.allocate(2).putShort((short) counter).array();
+        byte[] timeBytes = ByteBuffer.allocate(2).putShort((short) time).array();
         byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort((short) cliHelloTime).array();
         byte[] ucBytes = ByteBuffer.allocate(2).putShort(unknownCounter).array();
 

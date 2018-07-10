@@ -77,12 +77,12 @@ public class SyncStartHandler extends BaseHandler
 //        ClientSyncStart clientSyncStart = racer.getSyncStart();
         ServerSyncStart response = new ServerSyncStart();
         response.unknownCounter = clientSyncStart.unknownCounter;
-//        response.time = (int) racer.getTimeDiff();
-        response.time = clientSyncStart.time;
+        response.time = (int) racer.getTimeDiff();
+//        response.time = clientSyncStart.time;
         response.sessionID = clientSyncStart.subPacket.sessionID;
         response.counter = racer.getSyncSequence();
-        response.cliHelloTime = clientSyncStart.cliHelloTime;
-//        response.cliHelloTime = racer.getCliHelloTime();
+//        response.cliHelloTime = clientSyncStart.cliHelloTime;
+        response.cliHelloTime = racer.getCliHelloTime();
         response.numPlayers = clientSyncStart.subPacket.maxPlayers;
         response.gridIndex = clientSyncStart.subPacket.playerSlot;
 

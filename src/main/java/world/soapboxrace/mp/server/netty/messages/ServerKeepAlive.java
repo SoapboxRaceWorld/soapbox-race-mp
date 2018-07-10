@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 
 public class ServerKeepAlive implements UdpMessage
 {
-    public short counter;
-    public short time;
+    public int counter;
+    public int time;
     public int helloTime;
     public short unknownCounter;
 
@@ -21,8 +21,8 @@ public class ServerKeepAlive implements UdpMessage
     @Override
     public void write(ByteBuffer buffer)
     {
-        byte[] counterBytes = ByteBuffer.allocate(2).putShort(counter).array();
-        byte[] timeBytes = ByteBuffer.allocate(2).putShort(time).array();
+        byte[] counterBytes = ByteBuffer.allocate(2).putShort((short) counter).array();
+        byte[] timeBytes = ByteBuffer.allocate(2).putShort((short) time).array();
         byte[] helloTimeBytes = ByteBuffer.allocate(2).putShort((short) helloTime).array();
         byte[] unknownCounterBytes = ByteBuffer.allocate(2).putShort(unknownCounter).array();
 

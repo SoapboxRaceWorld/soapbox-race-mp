@@ -38,13 +38,16 @@ public class SyncHandler extends BaseHandler
 
             ServerSync response = new ServerSync();
             response.unknownCounter = clientSync.unknownCounter;
-            response.counter = clientSync.counter;
-            response.time = clientSync.time;
-            response.cliHelloTime = clientSync.cliHelloTime;
-            
+//            response.counter = clientSync.counter;
+//            response.time = clientSync.time;
+            response.counter = racer.getSyncSequence();
+            response.time = (int) racer.getTimeDiff();
+            response.cliHelloTime = racer.getCliHelloTime();
+//            response.cliHelloTime = clientSync.cliHelloTime;
+
             ByteBuffer responseBuf = ByteBuffer.allocate(22);
             response.write(responseBuf);
-            
+
             racer.send(responseBuf);
         } else
         {

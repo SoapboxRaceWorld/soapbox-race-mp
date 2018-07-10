@@ -66,19 +66,19 @@ public class InfoAfterSyncHandler extends BaseHandler
     {
         if (packet.length < 4)
             return ByteBuffer.allocate(0);
-        byte[] seqBytes = ByteBuffer.allocate(2).putShort(toRacer.getSequenceB()).array();
+        byte[] seqBytes = ByteBuffer.allocate(2).putShort(toRacer.getPreInfoSequence()).array();
         byte[] timeArray = ByteBuffer.allocate(2).putShort((short) toRacer.getTimeDiff()).array();
         ByteBuffer buffer = ByteBuffer.allocate(packet.length - 3);
 
         buffer.put((byte) 0x01);
         buffer.put(fromRacer.getClientIndex());
         buffer.put(seqBytes);
-//        buffer.put(new byte[] { 0x00, 0x00 });
 
         for (int i = 6; i < (packet.length - 1); i++)
         {
             if (packet[i] == 0x12 && packet[i + 1] >= 0x1a)
             {
+                logger.debug("time fix @ {}", i);
                 packet[i + 2] = timeArray[0];
                 packet[i + 3] = timeArray[1];
             }
