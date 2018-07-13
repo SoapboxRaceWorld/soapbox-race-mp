@@ -80,9 +80,6 @@ public class Racer
     public void send(byte[] data)
     {
         final ByteBuf buffer = Unpooled.copiedBuffer(data);
-        System.out.println("send to " + firstPacket.sender().getPort() + ":");
-        System.out.println(ByteBufUtil.prettyHexDump(buffer));
-        
         ctx.writeAndFlush(new DatagramPacket(buffer, firstPacket.sender()));
     }
 

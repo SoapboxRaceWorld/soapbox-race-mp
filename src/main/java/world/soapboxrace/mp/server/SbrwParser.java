@@ -60,7 +60,6 @@ public class SbrwParser implements IParser
             }
 
             ServerLog.SERVER_LOGGER.debug("Packet - ID: {} | size: {}", String.format("0x%02x", packetId), String.format("0x%02x", packetLength));
-//            System.out.println(String.format("packet 0x%02x (0x%02x)", packetId, packetLength));
 
             switch (packetId)
             {
@@ -123,7 +122,6 @@ public class SbrwParser implements IParser
                 bufferSize += statePosPacket.length;
             }
 
-//            int bufferSize = header.length + playerInfo.length + Objects.requireNonNull(statePosPacket).length + CRC_BYTES.length;
             ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
 
             byteBuffer.put(header);
@@ -176,7 +174,7 @@ public class SbrwParser implements IParser
     @Override
     public byte[] getCarStatePacket(long timeDiff)
     {
-        if (isOk())
+        if (isCarStateOk())
         {
             byte[] statePosPacket = getStatePosPacket(timeDiff);
             int bufferSize = header.length + Objects.requireNonNull(statePosPacket).length + CRC_BYTES.length;
@@ -193,7 +191,7 @@ public class SbrwParser implements IParser
 
     private byte[] getStatePosPacket(long timeDiff)
     {
-        if (isOk())
+        if (isCarStateOk())
         {
             byte[] clone = carState.clone();
             byte[] timeDiffBytes = ByteBuffer.allocate(2).putShort((short) timeDiff).array();

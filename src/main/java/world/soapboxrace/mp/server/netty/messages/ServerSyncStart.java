@@ -42,7 +42,7 @@ public class ServerSyncStart implements UdpMessage
 
         int x = Integer.reverse(0xFFFF);
 
-        if ((int) unknownCounter != 0xFFFF) // 1 -> 0111 ...??? or 1111 ...?
+        if (unknownCounter != 0xFFFF) // 1 -> 0111
         {
             if (unknownCounter <= 16)
             {

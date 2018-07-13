@@ -52,8 +52,6 @@ public class HelloHandler extends BaseHandler
 
             session.addRacer(racer);
             sendHelloResponse(racer);
-            
-            racer.setStatus(RacerStatus.WAITING_HELLO_SYNC);
         } else
         {
             super.channelRead(ctx, msg);

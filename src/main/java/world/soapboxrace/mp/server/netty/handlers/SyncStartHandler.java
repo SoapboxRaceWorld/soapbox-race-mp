@@ -4,10 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import world.soapboxrace.mp.race.RaceSession;
-import world.soapboxrace.mp.race.RaceSessionManager;
-import world.soapboxrace.mp.race.Racer;
-import world.soapboxrace.mp.race.RacerManager;
+import world.soapboxrace.mp.race.*;
 import world.soapboxrace.mp.server.netty.messages.ClientSyncStart;
 import world.soapboxrace.mp.server.netty.messages.ServerSyncStart;
 
@@ -35,6 +32,11 @@ public class SyncStartHandler extends BaseHandler
 
         if (isSyncStart(data))
         {
+            if (racer.getStatus() == RacerStatus.WAITING_HELLO)
+            {
+                racer.setStatus(RacerStatus.WAITING_HELLO_SYNC);
+            }
+            
             racer.getSyncStart().read(buf);
             racer.setSyncStartReady(true);
 
@@ -53,11 +55,21 @@ public class SyncStartHandler extends BaseHandler
 
             answer(racer, racer.getSyncStart());
 
-            if (session.allPlayersSyncStartReady())
+            if (session.allPlayersInState(RacerStatus.WAITING_HELLO_SYNC) && session.allPlayersSyncStartReady())
             {
-                logger.debug("Re-sending sync start");
+                logger.debug("Re-sending sync start because all players are in WAITING_HELLO_SYNC");
+
                 session.getRacers().forEach(r -> answer(r, r.getSyncStart()));
+            } else if (session.allPlayersInState(RacerStatus.WAITING_ID_BEFORE_SYNC) || session.allPlayersInState(RacerStatus.WAITING_ID_AFTER_SYNC))
+            {
+                logger.debug("Re-sending sync start because of ID state");
+
+                session.getRacers().forEach(r -> answer(r, racer.getSyncStart()));
             }
+            
+            racer.setStatus(RacerStatus.WAITING_ID_BEFORE_SYNC);
+
+//                session.getRacers().forEach(r -> answer(r, r.getSyncStart()));
         } else
         {
             super.channelRead(ctx, msg);
@@ -77,15 +89,16 @@ public class SyncStartHandler extends BaseHandler
 //        ClientSyncStart clientSyncStart = racer.getSyncStart();
         ServerSyncStart response = new ServerSyncStart();
         response.unknownCounter = clientSyncStart.unknownCounter;
-        response.time = (int) racer.getTimeDiff();
-//        response.time = clientSyncStart.time;
+//        response.time = (int) racer.getTimeDiff();
+        response.time = clientSyncStart.time;
         response.sessionID = clientSyncStart.subPacket.sessionID;
         response.counter = racer.getSyncSequence();
 //        response.cliHelloTime = clientSyncStart.cliHelloTime;
         response.cliHelloTime = racer.getCliHelloTime();
         response.numPlayers = clientSyncStart.subPacket.maxPlayers;
-        response.gridIndex = clientSyncStart.subPacket.playerSlot;
-
+//        response.gridIndex = racer.getClientIndex();
+        response.gridIndex = 0;
+        
         ByteBuffer buffer = ByteBuffer.allocate(25);
         response.write(buffer);
         racer.send(buffer);

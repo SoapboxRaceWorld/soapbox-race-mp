@@ -36,8 +36,12 @@ public class ServerChannelInitializer extends ChannelInitializer<DatagramChannel
         pipeline.addLast("syncStart", new SyncStartHandler());
         pipeline.addLast("sync", new SyncHandler());
         pipeline.addLast("keepAlive", new KeepAliveHandler());
-        pipeline.addLast("infoBeforeSync", new InfoBeforeSyncHandler());
-        pipeline.addLast("infoAfterSync", new InfoAfterSyncHandler());
+        pipeline.addLast("idBeforeSync", new IdBeforeSyncHandler());
+        pipeline.addLast("posBeforeSync", new PositionBeforeSyncHandler());
+        pipeline.addLast("idAfterSync", new IdAfterSyncHandler());
+        pipeline.addLast("posAfterSync", new PositionAfterSyncHandler());
+//        pipeline.addLast("infoBeforeSync", new InfoBeforeSyncHandler());
+//        pipeline.addLast("infoAfterSync", new InfoAfterSyncHandler());
 
         pipeline.addLast(new ChannelInboundHandlerAdapter()
         {
