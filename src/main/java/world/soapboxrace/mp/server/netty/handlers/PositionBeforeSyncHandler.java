@@ -57,11 +57,21 @@ public class PositionBeforeSyncHandler extends BaseHandler
     private ByteBuffer transformPosPacket(byte[] packet, Racer origRacer, Racer targetRacer)
     {
         byte[] sequenceBytes = ByteBuffer.allocate(2).putShort(targetRacer.getSequenceB()).array();
+        byte[] timeArray = ByteBuffer.allocate(2).putShort((short) targetRacer.getTimeDiff()).array();
 
         ByteBuffer buffer = ByteBuffer.allocate(packet.length - 3);
         buffer.put((byte) 0x01);
-        buffer.put(origRacer.getSyncStart().subPacket.playerSlot);
+        buffer.put(origRacer.getClientIndex());
         buffer.put(sequenceBytes);
+
+        for (int i = 6; i < (packet.length - 1); i++)
+        {
+            if (packet[i] == 0x12 && packet[i + 1] >= 0x1a)
+            {
+                packet[i + 2] = timeArray[0];
+                packet[i + 3] = timeArray[1];
+            }
+        }
 
         for (int i = 6; i < packet.length - 1; i++)
         {
